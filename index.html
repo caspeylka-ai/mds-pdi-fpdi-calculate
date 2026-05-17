@@ -1,145 +1,78 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-<meta charset="UTF-8">
-<title>MDS — Калькулятор білкової щільності</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.container {
-    background: #1e293b;
-    padding: 25px;
-    border-radius: 12px;
-    width: 380px;
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 6px;
-    border: none;
-}
-
-button {
-    width: 100%;
-    padding: 10px;
-    background: #22c55e;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.result {
-    margin-top: 15px;
-    padding: 12px;
-    background: #0f172a;
-    border-radius: 8px;
-    line-height: 1.4;
-}
-.small {
-    font-size: 12px;
-    opacity: 0.7;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<h2>🧠 MDS калькулятор</h2>
-
-<label>Білок (г / 100 г)</label>
-<input type="number" id="protein">
-
-<label>Калорійність (ккал / 100 г)</label>
-<input type="number" id="kcal">
-
-<label>Тип продукту</label>
-<select id="type">
-    <option value="1.00">🥇 Еталонний білок (сироватка, яйце, курка, риба)</option>
-    <option value="0.95">🥈 Майже еталон (молочні, скір, творог)</option>
-    <option value="0.90">🥉 Рослинний якісний (соя, тофу, темпе)</option>
-    <option value="0.80">🌱 Бобові (сочевиця, нут, квасоля)</option>
-    <option value="0.65">🌾 Зернові білки (рис, овес, гречка)</option>
-    <option value="0.60">🥜 Горіхи/насіння</option>
-    <option value="0.50">🍬 Колаген / желатин</option>
-    <option value="0.35">🧃 Мінімальна білкова цінність</option>
-</select>
-
-<button onclick="calculate()">Розрахувати</button>
-
-<div class="result" id="output"></div>
-
-</div>
-
 <script>
 
-function getPDIlevel(pdi){
-    if(pdi >= 90) return "🟢 Максимальна білкова щільність";
-    if(pdi >= 75) return "🟢 Дуже висока білкова щільність";
-    if(pdi >= 60) return "🟡 Висока білкова щільність";
-    if(pdi >= 45) return "🟡 Помірна білкова щільність";
-    if(pdi >= 30) return "🟠 Середня білкова щільність";
-    if(pdi >= 20) return "🔴 Низька білкова щільність";
-    return "🔴 Мінімальна білкова щільність";
+function warn(pdi){
+let w=document.getElementById("warn");
+if(pdi>100){
+w.style.display="block";
+w.innerText="Некоректна комбінація: перевищення еталонного рівня неможливе у реальних харчових продуктах.";
+}else{
+w.style.display="none";
+}
 }
 
-function getFPDIlevel(fpdi){
-    if(fpdi >= 85) return "🟢 Еталонний якісний білок";
-    if(fpdi >= 70) return "🟢 Дуже якісний білок";
-    if(fpdi >= 55) return "🟡 Якісний білок";
-    if(fpdi >= 40) return "🟡 Помірно якісний білок";
-    if(fpdi >= 25) return "🟠 Допоміжне джерело білка";
-    if(fpdi >= 10) return "🔴 Обмежений білковий внесок";
-    return "🔴 Мінімальна цінність білка";
+function pdiText(v){
+if(v<15) return "Білок присутній у мінімальній концентрації відносно калорійності";
+if(v<30) return "Низька білкова щільність";
+if(v<50) return "Помірна білкова щільність";
+if(v<70) return "Висока білкова щільність";
+return "Дуже висока білкова щільність";
 }
 
-function calculate() {
-
-    let protein = parseFloat(document.getElementById("protein").value);
-    let kcal = parseFloat(document.getElementById("kcal").value);
-    let diaas = parseFloat(document.getElementById("type").value);
-
-    if (!protein || !kcal) {
-        document.getElementById("output").innerHTML = "⚠️ Введи коректні значення";
-        return;
-    }
-
-    // PDI
-    let pdi = (protein / kcal) * 400;
-
-    // FPDI (автоматичний DIAAS)
-    let fpdi = pdi * diaas;
-
-    let pdiText = getPDIlevel(pdi);
-    let fpdiText = getFPDIlevel(fpdi);
-
-    document.getElementById("output").innerHTML = `
-        <b>PDI:</b> ${pdi.toFixed(2)}<br>
-        <small>${pdiText}</small><br><br>
-
-        <b>FPDI:</b> ${fpdi.toFixed(2)}<br>
-        <small>${fpdiText}</small><br><br>
-
-        <b>Коефіцієнт якості білка:</b> ${diaas}
-    `;
+function fpdiText(v){
+if(v<20) return "Білок має низьку функціональну ефективність";
+if(v<40) return "Обмежена біологічна ефективність білка";
+if(v<60) return "Стабільна функціональна ефективність білка";
+if(v<80) return "Висока біологічна ефективність білка";
+return "Максимальна біологічна ефективність білка";
 }
+
+function role(v){
+if(v<20) return "Додатковий компонент раціону — не формує білкову основу.";
+if(v<40) return "Допоміжне джерело білка — підтримує баланс.";
+if(v<60) return "Базове джерело білка — придатне для регулярного використання.";
+if(v<80) return "Основне джерело білка — формує білкову структуру раціону.";
+return "Ключове білкове джерело — високоефективна основа харчування.";
+}
+
+function structure(v){
+if(v<30) return "Переважно вуглеводно-жирова структура з низькою білковою часткою.";
+if(v<55) return "Змішана структура з помітною білковою складовою.";
+if(v<75) return "Білково-орієнтована харчова структура.";
+return "Висококонцентрована білкова структура продукту.";
+}
+
+function calc(){
+
+let p=+document.getElementById("protein").value;
+let c=+document.getElementById("calories").value;
+let q=+document.getElementById("type").value;
+
+if(!p||!c) return;
+
+let pdi=(p/c)*400;
+let fpdi=pdi*q;
+
+warn(pdi);
+
+document.getElementById("res").style.display="block";
+
+document.getElementById("pdi").innerText=pdi.toFixed(1)+"%";
+document.getElementById("fpdi").innerText=fpdi.toFixed(1)+"%";
+
+document.getElementById("pdiText").innerText=pdiText(pdi);
+document.getElementById("fpdiText").innerText=fpdiText(fpdi);
+
+document.getElementById("finalText").innerText="Продукт: " + role(fpdi);
+document.getElementById("roleText").innerText=role(fpdi);
+document.getElementById("structureText").innerText=structure(fpdi);
+
+}
+
+/* ENTER SUPPORT */
+document.addEventListener("keydown", function(e){
+if(e.key === "Enter"){
+calc();
+}
+});
 
 </script>
-
-</body>
-</html>
